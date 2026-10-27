@@ -107,7 +107,7 @@ jobs:
             echo "ok=false" >> "$GITHUB_OUTPUT"; exit 0
           fi
           terraform -chdir=infra/terraform init -input=false -backend-config="bucket=eventide-tfstate-${ACCOUNT}" >/dev/null
-          if [ -z "$(terraform -chdir=infra/terraform output -raw nlb_dns_name 2>/dev/null)" ]; then
+          if [ -z "$(terraform -chdir=infra/terraform output -raw alb_dns_name 2>/dev/null)" ]; then
             echo "::notice title=deploy skipped::the platform is down (make down) — run \`make up\` first"
             echo "ok=false" >> "$GITHUB_OUTPUT"; exit 0
           fi
@@ -118,8 +118,10 @@ jobs:
       - name: smoke
         if: steps.gate.outputs.ok == 'true'
         run: |
-          NLB="$(terraform -chdir=infra/terraform output -raw nlb_dns_name)"
+          # the custom domain over https when it is configured, else the ALB's own name (port 80 redirects once there is a domain)
+          URL="$(terraform -chdir=infra/terraform output -raw public_url 2>/dev/null || true)"
+          [ -n "$URL" ] || URL="http://$(terraform -chdir=infra/terraform output -raw alb_dns_name)"
           for p in auth events regis payment; do
-            curl -fsS --retry 6 --retry-delay 5 --retry-all-errors "http://$NLB/api/$p/health" >/dev/null && echo "ok $p"
+            curl -fsS --retry 6 --retry-delay 5 --retry-all-errors "$URL/api/$p/health" >/dev/null && echo "ok $p"
           done
-          curl -fsS --retry 6 --retry-delay 5 --retry-all-errors "http://$NLB/api/events/og/site" -o /dev/null -w "og/site %{http_code} %{content_type}\n"
+          curl -fsS --retry 6 --retry-delay 5 --retry-all-errors "$URL/api/events/og/site" -o /dev/null -w "og/site %{http_code} %{content_type}\n"
