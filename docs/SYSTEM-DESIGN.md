@@ -861,13 +861,18 @@ automatically.
 Prometheus and Grafana were **cut** — 1–2 days of Helm values and dashboard work for
 metrics that Container Insights already provides adequately for the report.
 
-**Autoscaling:** metrics-server plus an HPA on `event` (the read-heavy service the
-load test hits), driven by CPU, 2→8 replicas. `auth`/`registration` run 2
-replicas, `payment`/`web` run 1. Every service declares resource requests and
-limits (required for HPA to work at all).
+**Autoscaling:** metrics-server plus HPAs driven by CPU (60 % of the request): `event`
+2→8, `registration` 2→8, `web` 1→4. `auth` runs 2 replicas, `payment` and `mail-worker` 1.
+Every service declares resource requests and limits (required for HPA to work at all).
+Nodes scale too since 2026-10-27: the **Cluster Autoscaler** (`helm_release.cluster_autoscaler`)
+adds a `t3.small` to a node group when pods sit `Pending` and removes it once it has been
+unneeded for 2 minutes: edge 2→4, egress 1→2, at most 6 instances. The lab's node role has no
+`autoscaling:*` and IRSA is unavailable, so it uses the session credentials, like the pods'
+S3/SQS access (knowledge-base decision log).
 
-**Load test:** k6 against `/api/events` while projecting `kubectl get hpa -w` and
-`kubectl get pods -w`.
+**Load test:** three k6 profiles (idle, normal, extreme) through the public host, with the
+HPAs, pods, nodes and CloudWatch recorded beside them (`load/run.sh`). Results:
+`load/LOADTEST-REPORT.md`.
 
 > **Pod IP ceiling.** A `t3.medium` supports 3 ENIs × 6 IPv4 addresses, which the VPC CNI
 > turns into **17 pods per node**. Two nodes give 34, minus ~6 system pods ≈ 28 usable.

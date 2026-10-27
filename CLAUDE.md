@@ -346,6 +346,12 @@ These are hard and load-bearing — most odd design choices trace back to one of
   Gmail). A pod lives in its node's subnet, so the chart pins them with `nodeSelector
   eventide/tier` (`values.aws.yaml`). The edge tier reaches AWS through VPC endpoints
   (S3 gateway; ecr.api, ecr.dkr, sts, ec2, sqs, secretsmanager).
+- **Autoscaling:** HPAs on `event` (2–8), `registration` (2–8) and `web` (1–4) at 60 % CPU;
+  the **Cluster Autoscaler** (`helm_release.cluster_autoscaler`, on the egress tier) adds a node
+  when pods sit `Pending` and removes it once unneeded: edge 2–4, egress 1–2 `t3.small`. The
+  lab's node role has no `autoscaling:*` and there is no IRSA, so it runs on the session
+  credentials in `kube-system/cluster-autoscaler-aws` (`deploy.sh` writes it every session).
+  EKS runs **1.35**: a version past standard support bills $0.60/h instead of $0.10/h.
 - **Auth across services** = Better Auth cookie session; `@app/auth-guard` introspects
   `AUTH_SERVICE_URL` (in-cluster `auth` Service) and caches 60 s in **ElastiCache Redis**
   (1 node, TLS + AUTH token, `rediss://`; `REDIS_URL` comes from `eventide/endpoints` via
@@ -432,10 +438,12 @@ as the `AWS_*` GitHub secrets.
   `t3.micro`'s ~87 connections and fails the HPA load test on connections, not CPU.
 - Bun services must **handle `SIGTERM`** (mail-worker already does; Elysia's `listen` does).
 - RDS: `skip_final_snapshot = true`, `deletion_protection = false`, or the nightly destroy fails.
-- HPA max is **8 replicas** — a `t3.medium` allows only 17 pods; beyond the ceiling pods sit
-  `Pending` with an error that looks like a bug. Run the load test with
-  `NODE_INSTANCE_TYPE=t3.medium make up`. A single-source k6 run also trips the WAF's per-IP
-  rate rule: raise it for the run (`-var waf_rate_limit=…`).
+- HPA max is **8 replicas** per service. A `t3.small` holds 11 pods and a `t3.medium` 17;
+  beyond the node groups' max (edge 4, egress 2) pods sit `Pending` with an error that looks
+  like a bug. The Cluster Autoscaler fills the gap up to that max, so the load test runs on
+  the default `t3.small` (`bash load/run.sh idle|normal|extreme`, `load/README.md`). A
+  single-source k6 run trips the WAF's per-IP rate rule above ~33 req/s: raise it for the run
+  (`-var waf_rate_limit=…`) and put it back afterwards.
 - **Nothing on the edge tier can pull from a public registry** (no route out; Docker Hub and
   `registry.k8s.io` time out and the pod sits in `ImagePullBackOff`). Every image comes from our
   ECR: the service images via `deploy.sh`, ingress-nginx and metrics-server via `make mirror`
