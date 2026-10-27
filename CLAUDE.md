@@ -300,10 +300,11 @@ Infrastructure does not compress under deadline pressure; features do.
 
 These are hard and load-bearing — most odd design choices trace back to one of them:
 
-- **$50 hard cap.** Exceeding it locks the account and deletes all work. About `$2` per
-  4-hour session with the production layout (an estimate from list prices, ~`$0.5`/h while
-  up; it was ~`$1.10` before NAT, endpoints, RDS Proxy, ElastiCache, ALB and WAF); leaving
-  the platform layer up exhausts the budget in days.
+- **$50 hard cap.** Exceeding it locks the account and deletes all work. The production
+  layout costs **$0.403/h idle** (≈ `$1.61` per 4-hour session, `$9.68` a day if left up),
+  $0.53/h at 40 req/s and ≈ $3.07/h at 800 req/s; down, $0.0027/h. Measured 2026-10-27 with
+  SKU-level prices: `docs/COST-REPORT.md`. EKS must stay on a version in standard support:
+  extended support adds $0.50/h. `scripts/cost-actual.sh` shows what Cost Explorer billed.
 - **`make down` (`terraform apply -var platform=false`) at the end of every session.**
   The lab auto-stops EC2 only; RDS, the EKS control plane, NAT, interface endpoints,
   RDS Proxy, ElastiCache, the ALB and the WAF keep billing. Worker nodes are in ASGs that

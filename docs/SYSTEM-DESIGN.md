@@ -883,20 +883,23 @@ HPAs, pods, nodes and CloudWatch recorded beside them (`load/run.sh`). Results:
 
 ## 11. Cost model
 
-| Resource | Per hour | Per day if left running |
+The production layout, measured 2026-10-27 (prices with SKUs, the line-by-line inventory and the load-test usage:
+[COST-REPORT.md](COST-REPORT.md)):
+
+| Scenario | Per hour | Per day if left running |
 |---|---:|---:|
-| EKS control plane (**cannot be stopped, only deleted**) | $0.100 | $2.40 |
-| 2 × t3.medium | $0.083 | — (lab auto-stops, but the ASG relaunches) |
-| Network Load Balancer | $0.023 | $0.54 |
-| RDS db.t3.micro (**the lab does not stop RDS**) | $0.018 | $0.43 |
-| NAT gateway | $0.000 | $0.00 — avoided by design |
-| **Total** | **$0.27/hr** | **$3.40/day** |
+| Idle: EKS 1.35, 3 × t3.small, NAT, 6 endpoints, ALB + WAF, RDS + Proxy, ElastiCache | $0.403 | $9.68 |
+| Normal load, 40 req/s | $0.530 | — |
+| Full load, 800 req/s (4 nodes; the WAF's request charge is $1.73 of it) | $3.07 | — |
+| The same idle platform on EKS 1.33 (extended support, +$0.50/h) | $0.903 | $21.68 |
+| Platform down (`make down`): secrets, DNS zone, ECR | $0.0027 | $0.07 |
 
 Budget is **$50, hard-capped**. Exceeding it locks the account and deletes all work.
 
-- A four-hour working session ≈ **$1.10**. Twenty sessions plus demo day ≈ **$25**.
-- Leaving `20-platform` up between sessions exhausts $50 in **~15 days** — before the
-  final demo.
+- A four-hour working session at idle ≈ **$1.61**; tonight's session with the three load tests cost ≈ **$1.43** in 2.4 h.
+- Leaving the platform up between sessions costs $9.68 a day: the ~$28 left on 2026-10-27 lasts **≈ 3 days**.
+- The EKS control plane, the NAT gateway, the interface endpoints, RDS, RDS Proxy, ElastiCache, the ALB and the WAF keep
+  billing when the lab stops EC2, and the node groups' ASGs relaunch the nodes.
 
 There is no middle setting. Check remaining credit in the lab UI at the start **and** end
 of every session.
