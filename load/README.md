@@ -1,50 +1,65 @@
 # Load testing
 
-Week 4 autoscaling demo. See `docs/TODO.md` §5 and `docs/SYSTEM-DESIGN.md` §10.
+Three profiles through the public host, with the cluster's and AWS's view recorded beside k6's. The latest results and
+what they mean: [LOADTEST-REPORT.md](LOADTEST-REPORT.md). The cost side of the same runs: [docs/COST-REPORT.md](../docs/COST-REPORT.md).
+
+| Profile | Offered load | What it answers |
+|---|---|---|
+| `idle` | 1 request every 5 s, 15 min | the platform up with nobody on it: baseline CPU, memory, pods, nodes and cost |
+| `normal` | 40 req/s for 12 min (~300 people browsing, ~7.5 s between clicks) | everyday traffic: latency per endpoint, whether anything scales |
+| `extreme` | 150 → 400 → 800 req/s over 15 min, then 12 min without load | every HPA to its ceiling, the edge nodes past their pod slots (Cluster Autoscaler), then scale-in |
+
+All three send the same read-only mix (`k6/profiles.js`): event list and detail, seat availability, the web pages, the
+signed-in "my tickets", categories, Open Graph images and health checks. Nothing enrolls or pays: those paths send real
+mail and touch Stripe.
 
 ## Prerequisites
 
-- `brew install k6`
-- Cluster up (`make up`) with the app deployed (`make deploy`) and the HPA applied
-  (`infra/k8s/event-hpa.yaml` — `make deploy` applies the whole `infra/k8s/` dir).
-- `metrics-server` running (installed by Terraform, `20-platform/addons.tf`).
-  Verify: `kubectl -n eventide top pods -l app=event` returns numbers, and
-  `kubectl -n eventide get hpa event` shows a real `cpu: N%/60%`, not `<unknown>`.
+- `brew install k6`, and `kubectl` pointed at the cluster (`make deploy` does that).
+- The demo seeded (`make deploy` does it; `make demo` by hand): the run signs in as the demo attendee from
+  `demo/.credentials`.
+- For `normal` and `extreme`, the WAF's per-IP rate rule raised: one laptop is one IP, and the default 10,000 requests per
+  5 minutes is about 33 req/s.
+
+  ```sh
+  set -a; . infra/aws.env 2>/dev/null; set +a
+  terraform -chdir=infra/terraform apply -var waf_rate_limit=2000000   # before
+  terraform -chdir=infra/terraform apply                               # after: back to the default
+  ```
 
 ## Run
 
 ```sh
-# EKS
-NLB=$(terraform -chdir=infra/terraform/20-platform output -raw nlb_dns_name)
-make load BASE_URL="http://$NLB"
-
-# k3d parity
-make load BASE_URL=http://localhost:8080
+bash load/run.sh idle
+bash load/run.sh normal
+bash load/run.sh extreme          # COOLDOWN=<s> to sample longer after k6 ends; SCALE=0.5 halves every rate
 ```
 
-Beside it, in two panes:
+Each run writes `load/results/<date>/<profile>/`:
+
+| File | Content |
+|---|---|
+| `meta.env` | the window in UTC, the target, k6's exit code |
+| `timeline.csv` | every 10 s (`collect.sh`): each HPA's CPU and desired replicas, Ready and Pending pods, Ready nodes per tier, node CPU and memory |
+| `summary.json`, `k6.log`, `dashboard.html` | k6's end-of-test summary (per-endpoint thresholds give per-endpoint numbers) and its HTML report |
+| `events.txt`, `autoscaler.log` | HPA rescales, scheduling failures, the Cluster Autoscaler's scale-ups and scale-downs |
+| `before.txt`, `after.txt` | nodes, HPAs, deployments, pods and `kubectl top nodes` |
+| `cloudwatch.json`, `cloudwatch-summary.tsv` | `cloudwatch.sh`: ALB, WAF, RDS, RDS Proxy, ElastiCache, node CPU and CPU credits, NAT |
+
+CloudWatch lags a few minutes, and EC2's basic monitoring is 5-minute data: rerun
+`bash load/cloudwatch.sh <START> <END> <dir>` (the times are in `meta.env`) later for the last points.
+
+To watch live, in other panes:
 
 ```sh
-kubectl -n eventide get hpa event -w
-kubectl -n eventide get pods -l app=event -w
+kubectl -n eventide get hpa -w
+kubectl get nodes -L eventide/tier -w
+kubectl -n kube-system logs -f deployment/cluster-autoscaler | grep -iE 'scale|unneeded'
 ```
 
-## What to capture for the report
+## Older scripts
 
-- `kubectl get hpa -w` output showing `REPLICAS` go 2 → 8 and back to 2.
-- `kubectl get pods -w` showing pods created then terminated.
-- The k6 end-of-run summary (`http_req_failed` near 0, p95 latency).
-- If `enable_container_insights = true` applied cleanly: the Container Insights
-  CPU/pod-count graphs for the run window. If not, `kubectl top pods` snapshots
-  at peak load are the fallback evidence.
-
-## Tuning
-
-`event` returns `[]` and costs almost nothing per request. If replicas don't
-move:
-
-- raise the VU `target`s in `k6/events.js`, or
-- lower the CPU `request` in `infra/k8s/event.yaml` (same load becomes a higher
-  % of a smaller request), or
-- run the node group as `t3.medium` (`-var node_instance_type=t3.medium`) only
-  if you also need more pod headroom — not required to reach 8.
+- `k6/events.js` (`make load BASE_URL=…`): the original HPA demo, `GET /api/events` only.
+- `k6/all.js`: every endpoint at a constant 30 VUs each. Results: `RESULTS.md`, `RESULTS-production-layout.md`.
+- `k6/redis-compare.js`: Redis on vs off, run from inside the cluster.
+- `seed.sh`: an admin and one event for those scripts (the demo seed replaces it for `profiles.js`).
