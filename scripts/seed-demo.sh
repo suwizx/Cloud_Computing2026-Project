@@ -18,6 +18,11 @@ load_aws_env
 
 command -v bun >/dev/null || { echo "demo: bun is not installed; skipping the demo data (see demo/README.md)"; exit 0; }
 
+# bun loads the root .env into the seed and into the admin.sh it spawns, and that .env holds MinIO's AWS_* keys for local
+# dev: with the lab credentials in ~/.aws/credentials (no infra/aws.env) they would win, and kubectl gets Unauthorized from
+# EKS. Pin the real session credentials first; bun never overrides a variable that is already set.
+if CREDS="$(aws configure export-credentials --format env 2>/dev/null)"; then eval "$CREDS"; fi
+
 if [ -z "${BASE_URL:-}" ]; then
   BASE_URL="$(tfout public_url || true)"
   [ -n "$BASE_URL" ] || BASE_URL="http://$(tfout alb_dns_name || true)"

@@ -20,9 +20,10 @@ END="${2:-$(date -v+1d +%F 2>/dev/null || date -d tomorrow +%F)}"
 USAGE='{"Dimensions":{"Key":"RECORD_TYPE","Values":["Usage"]}}'
 
 if [ -n "${TOTAL:-}" ]; then
-  aws ce get-cost-and-usage --time-period "Start=$START,End=$END" --granularity MONTHLY --metrics UnblendedCost \
-    --filter "$USAGE" --query 'ResultsByTime[].Total.UnblendedCost.Amount' --output text \
-    | tr '\t' '\n' | awk -v s="$START" -v e="$END" '{ t += $1 } END { printf "usage cost %s .. %s: $%.2f\n", s, e, t }'
+  # captured first: a failed call must fail the script, not print $0.00
+  AMOUNTS="$(aws ce get-cost-and-usage --time-period "Start=$START,End=$END" --granularity MONTHLY --metrics UnblendedCost \
+    --filter "$USAGE" --query 'ResultsByTime[].Total.UnblendedCost.Amount' --output text)"
+  tr '\t' '\n' <<<"$AMOUNTS" | awk -v s="$START" -v e="$END" '{ t += $1 } END { printf "usage cost %s .. %s: $%.2f\n", s, e, t }'
   exit 0
 fi
 
