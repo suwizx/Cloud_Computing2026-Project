@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
-# Samples the cluster every INTERVAL seconds (default 10) into <out.csv> until it is stopped (load/run.sh starts and
+# Samples the cluster about every 10 s (the kubectl calls take ~6 s, then INTERVAL=5 s of sleep) into <out.csv> until it is stopped (load/run.sh starts and
 # stops it). One row per sample: what the HPAs see and decide, how many pods are Ready or Pending, how many nodes each
 # tier has, and how busy those nodes are. Needs kubectl pointed at the cluster and metrics-server (kubectl top).
 #   bash load/collect.sh load/results/<date>/<profile>/timeline.csv
 set -uo pipefail
 OUT="${1:?usage: collect.sh <out.csv>}"
-INTERVAL="${INTERVAL:-10}"
+INTERVAL="${INTERVAL:-5}"
 NS=eventide
 HPAS="event registration web"
 DEPLOYS="event registration web auth payment"
-trap 'exit 0' TERM INT
 
 header="ts"
 for h in $HPAS; do header="$header,${h}_cpu_pct,${h}_desired"; done
@@ -18,14 +17,23 @@ header="$header,pending_pods,edge_nodes,egress_nodes,edge_cpu_pct,egress_cpu_pct
 for h in $HPAS; do header="$header,${h}_cpu_m"; done
 echo "$header" > "$OUT"
 
+TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"; exit 0' TERM INT
 while :; do
   ts="$(date -u +%FT%TZ)"
-  hpa="$(kubectl -n $NS get hpa -o json 2>/dev/null || echo '{"items":[]}')"
-  dep="$(kubectl -n $NS get deploy -o json 2>/dev/null || echo '{"items":[]}')"
-  nodes="$(kubectl get nodes -o json 2>/dev/null || echo '{"items":[]}')"
-  top_nodes="$(kubectl top nodes --no-headers 2>/dev/null || true)"
-  top_pods="$(kubectl -n $NS top pods --no-headers 2>/dev/null || true)"
-  pending="$(kubectl -n $NS get pods --field-selector=status.phase=Pending --no-headers 2>/dev/null | wc -l | tr -d ' ')"
+  # in parallel: each kubectl call mints its own EKS token, and one after another they took ~30 s per sample
+  kubectl -n $NS get hpa -o json > "$TMP/hpa" 2>/dev/null &
+  kubectl -n $NS get deploy -o json > "$TMP/dep" 2>/dev/null &
+  kubectl get nodes -o json > "$TMP/nodes" 2>/dev/null &
+  kubectl top nodes --no-headers > "$TMP/top_nodes" 2>/dev/null &
+  kubectl -n $NS top pods --no-headers > "$TMP/top_pods" 2>/dev/null &
+  kubectl -n $NS get pods --field-selector=status.phase=Pending --no-headers > "$TMP/pending" 2>/dev/null &
+  wait
+  hpa="$(cat "$TMP/hpa")"; [ -n "$hpa" ] || hpa='{"items":[]}'
+  dep="$(cat "$TMP/dep")"; [ -n "$dep" ] || dep='{"items":[]}'
+  nodes="$(cat "$TMP/nodes")"; [ -n "$nodes" ] || nodes='{"items":[]}'
+  top_nodes="$(cat "$TMP/top_nodes")"
+  top_pods="$(cat "$TMP/top_pods")"
+  pending="$(wc -l < "$TMP/pending" | tr -d ' ')"
 
   row="$ts"
   for h in $HPAS; do

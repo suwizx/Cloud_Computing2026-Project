@@ -61,12 +61,19 @@ $(q edge_cpu AWS/EC2 CPUUtilization Average 300 AutoScalingGroupName "$EDGE")
 $(q egress_cpu AWS/EC2 CPUUtilization Average 300 AutoScalingGroupName "$EGRESS")
 $(q nat_bytes_out AWS/NATGateway BytesOutToDestination Sum 60 NatGatewayId "$NAT")
 $(q nat_bytes_in AWS/NATGateway BytesInFromDestination Sum 60 NatGatewayId "$NAT")
-$(e node_cpu 'SELECT AVG(CPUUtilization) FROM SCHEMA("AWS/EC2", InstanceId) GROUP BY InstanceId' 300)
-$(e node_surplus_charged 'SELECT SUM(CPUSurplusCreditsCharged) FROM SCHEMA("AWS/EC2", InstanceId) GROUP BY InstanceId' 300)
 EOF
 )"
+# GetMetricData takes one Metrics Insights query per call: each goes on its own, then the results are merged
+INSIGHTS=(
+  "$(e node_cpu 'SELECT AVG(CPUUtilization) FROM SCHEMA("AWS/EC2", InstanceId) GROUP BY InstanceId' 300)"
+  "$(e node_surplus_charged 'SELECT SUM(CPUSurplusCreditsCharged) FROM SCHEMA("AWS/EC2", InstanceId) GROUP BY InstanceId' 300)"
+)
 
-aws cloudwatch get-metric-data --start-time "$START" --end-time "$END" --metric-data-queries "$Q" --output json > "$DIR/cloudwatch.json"
+gmd() { aws cloudwatch get-metric-data --start-time "$START" --end-time "$END" --metric-data-queries "$1" --output json; }
+{
+  gmd "$Q"
+  for x in "${INSIGHTS[@]}"; do gmd "[$x]"; done
+} | jq -s '{MetricDataResults: [.[].MetricDataResults[]]}' > "$DIR/cloudwatch.json"
 {
   printf 'series\tpoints\tsum\tavg\tmax\n'
   jq -r '.MetricDataResults[] | [ (.Label // .Id), (.Values | length), (.Values | add // 0),
