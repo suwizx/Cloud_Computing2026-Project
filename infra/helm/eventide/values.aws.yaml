@@ -40,10 +40,22 @@ services:
     nodeSelector: { eventide/tier: egress }
   mail-worker:
     nodeSelector: { eventide/tier: egress }
+  # registration and web scale too, so a heavy load outgrows the edge nodes' pod slots
+  # (t3.small: 11 per node) and the Cluster Autoscaler adds a node (edge 2 -> 4).
   registration:
     nodeSelector: { eventide/tier: edge }
+    hpa:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 8
+      targetCPUUtilizationPercentage: 60
   web:
     nodeSelector: { eventide/tier: edge }
+    hpa:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 4
+      targetCPUUtilizationPercentage: 60
   redis: null
   event:
     nodeSelector: { eventide/tier: edge }

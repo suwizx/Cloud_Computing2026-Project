@@ -54,7 +54,8 @@ tfout() { tf output -raw "$1" 2>/dev/null; }
 adopt_helm_releases() {
   local entry addr id state
   state="$(tf state list 2>/dev/null || true)"
-  for entry in 'helm_release.ingress_nginx[0]=ingress-nginx/ingress-nginx' 'helm_release.metrics_server[0]=kube-system/metrics-server'; do
+  for entry in 'helm_release.ingress_nginx[0]=ingress-nginx/ingress-nginx' 'helm_release.metrics_server[0]=kube-system/metrics-server' \
+               'helm_release.cluster_autoscaler[0]=kube-system/cluster-autoscaler'; do
     addr="${entry%%=*}"; id="${entry#*=}"
     if grep -qxF -- "$addr" <<<"$state"; then continue; fi
     helm status -n "${id%%/*}" "${id#*/}" >/dev/null 2>&1 || continue

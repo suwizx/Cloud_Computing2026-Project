@@ -17,9 +17,9 @@ variable "availability_zones" {
 }
 
 variable "kubernetes_version" {
-  description = "EKS control-plane version. Lab offers 1.31-1.36."
+  description = "EKS control-plane version. Must be in standard support (extended support bills $0.60/h instead of $0.10/h)."
   type        = string
-  default     = "1.33"
+  default     = "1.35"
 }
 
 variable "node_instance_type" {

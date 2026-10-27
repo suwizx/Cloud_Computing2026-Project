@@ -20,6 +20,7 @@
 #   eventide-auth         BETTER_AUTH_SECRET (+ GOOGLE_*)        <- rds-master, eventide/google-oauth
 #   eventide-payment      STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET <- eventide/stripe   ("" = payment off)
 #   eventide-mail-worker  GMAIL_USER, GMAIL_APP_PASSWORD, MAIL_FROM <- eventide/gmail  ("" = dry-run)
+#   kube-system/cluster-autoscaler-aws  AWS_* session creds for the Cluster Autoscaler
 # The AWS session creds (S3 + SQS from the pods) expire with the lab session —
 # re-run `make deploy` each session.
 set -euo pipefail
@@ -85,6 +86,18 @@ mksecret eventide-common \
   --from-literal=AWS_SECRET_ACCESS_KEY="$(jkey "$CREDS" SecretAccessKey)" \
   --from-literal=AWS_SESSION_TOKEN="$(jkey "$CREDS" SessionToken)" \
   --from-literal=MAIL_QUEUE_URL="$MAIL_QUEUE_URL"
+
+# Cluster Autoscaler (Terraform's helm_release.cluster_autoscaler) resizes the node groups' ASGs with the same session
+# credentials: the lab node role has no autoscaling:* and there is no IRSA. envFrom is read at start, so restart it on new ones.
+kubectl -n kube-system create secret generic cluster-autoscaler-aws \
+  --from-literal=AWS_REGION="$REGION" \
+  --from-literal=AWS_ACCESS_KEY_ID="$(jkey "$CREDS" AccessKeyId)" \
+  --from-literal=AWS_SECRET_ACCESS_KEY="$(jkey "$CREDS" SecretAccessKey)" \
+  --from-literal=AWS_SESSION_TOKEN="$(jkey "$CREDS" SessionToken)" \
+  --dry-run=client -o yaml | kubectl apply -f -
+if kubectl -n kube-system get deployment cluster-autoscaler >/dev/null 2>&1; then
+  kubectl -n kube-system rollout restart deployment/cluster-autoscaler
+fi
 
 # The payment release gate runs here: before the auth, payment and mail Secrets are touched (the preflight pod needs only the common
 # Secret above), so a blocked release leaves what the running pods read on their next restart as it was.

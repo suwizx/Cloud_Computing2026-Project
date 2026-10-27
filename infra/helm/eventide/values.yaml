@@ -41,8 +41,9 @@ commonEnv:
   # Where the other services ask "who is this cookie?" — in-cluster, not the public origin.
   AUTH_SERVICE_URL: "http://auth.{{ .Values.namespace }}.svc.cluster.local"
   BETTER_AUTH_URL: "{{ .Values.publicUrl }}"
-  # postgres.js pool per process (packages/db). db.t3.micro allows ~87 connections;
-  # 13 pods under the HPA × 4 = 52.
+  # postgres.js pool per process (packages/db). On EKS the pools go to RDS Proxy, which
+  # multiplexes them onto db.t3.micro's ~87: at most 8 event + 8 registration (HPAs) +
+  # 2 auth + 1 payment = 19 pods × 4 = 76 client connections.
   DB_POOL_MAX: "4"
 
 # /files/<key> -> <protocol>://<host>:<port>/<bucket>/<key>, straight from
@@ -190,6 +191,7 @@ services:
       EVENT_SERVICE_URL: "http://event.{{ .Values.namespace }}.svc.cluster.local"
     livePath: /
     readyPath: /
+    # 50m, not 10m: the AWS overlay scales web on 60 % of this request, and 6m is noise
     resources:
-      requests: { cpu: 10m, memory: 48Mi }
+      requests: { cpu: 50m, memory: 48Mi }
       limits: { cpu: 200m, memory: 128Mi }

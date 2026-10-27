@@ -86,4 +86,7 @@ adopt_helm_releases >/dev/null
 STATE=""; HAVE=""; IMPORTS=""
 adopt_helm_releases >/dev/null
 [ -z "$IMPORTS" ] || { echo "FAIL (nothing to adopt on an empty cluster): got '$IMPORTS'"; exit 1; }
-echo "lib.test.sh: adopt_helm_releases 4 pass"
+STATE=$'helm_release.ingress_nginx[0]\nhelm_release.metrics_server[0]'; HAVE="ingress-nginx metrics-server cluster-autoscaler"; IMPORTS=""
+adopt_helm_releases >/dev/null
+[ "$IMPORTS" = "|helm_release.cluster_autoscaler[0]=kube-system/cluster-autoscaler" ] || { echo "FAIL (adopt the autoscaler too): got '$IMPORTS'"; exit 1; }
+echo "lib.test.sh: adopt_helm_releases 5 pass"

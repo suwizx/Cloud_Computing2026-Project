@@ -101,6 +101,43 @@ resource "helm_release" "metrics_server" {
   timeout = 300
 }
 
+# Cluster Autoscaler: adds an edge/egress node when pods sit Pending (the HPAs outgrew the
+# pod slots) and removes it when it has been unneeded for a while. It finds both node groups
+# by the tags EKS puts on their ASGs. The lab's node role has no autoscaling:* and IRSA is
+# unavailable, so it runs with the session credentials from the `cluster-autoscaler-aws`
+# Secret that scripts/deploy.sh writes every session (like the pods' S3/SQS access); until
+# then the pod waits, hence wait = false. On the egress tier: it calls the public
+# autoscaling API and pulls registry.k8s.io through the NAT.
+resource "helm_release" "cluster_autoscaler" {
+  count            = var.platform ? 1 : 0
+  name             = "cluster-autoscaler"
+  repository       = "https://kubernetes.github.io/autoscaler"
+  chart            = "cluster-autoscaler"
+  version          = "9.59.0" # app 1.35.0, matching the control plane
+  namespace        = "kube-system"
+  create_namespace = false
+
+  set = [
+    { name = "fullnameOverride", value = "cluster-autoscaler" },
+    { name = "cloudProvider", value = "aws" },
+    { name = "awsRegion", value = var.region },
+    { name = "autoDiscovery.clusterName", value = var.project },
+    { name = "envFromSecret", value = "cluster-autoscaler-aws" },
+    { name = "nodeSelector.eventide/tier", value = "egress" },
+    { name = "extraArgs.expander", value = "least-waste" },
+    # the app pods mount emptyDirs; by default that would pin every node they run on
+    { name = "extraArgs.skip-nodes-with-local-storage", value = "false" },
+    # demo timings (defaults are 10m): scale-in becomes visible within one lab session
+    { name = "extraArgs.scale-down-unneeded-time", value = "2m" },
+    { name = "extraArgs.scale-down-delay-after-add", value = "2m" },
+  ]
+
+  depends_on = [module.platform]
+
+  wait    = false
+  timeout = 300
+}
+
 # NB: no External Secrets Operator. IRSA is unavailable and the node role can't
 # read Secrets Manager, so ESO would need a static-credential secretRef that
 # expires every session — scripts/deploy.sh builds the k8s Secrets instead

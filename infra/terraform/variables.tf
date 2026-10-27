@@ -30,9 +30,9 @@ variable "availability_zones" {
 }
 
 variable "kubernetes_version" {
-  description = "EKS control-plane version. Lab offers 1.31-1.36."
+  description = "EKS control-plane version. Lab offers 1.31-1.37. Keep it in standard support: a version past it bills extended support, $0.60/h instead of $0.10/h (1.33 since 2026-07-29). 1.35 is standard until 2027-03-27 and the newest ingress-nginx v1.15.1 supports."
   type        = string
-  default     = "1.33"
+  default     = "1.35"
 }
 
 variable "node_instance_type" {
