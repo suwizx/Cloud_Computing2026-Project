@@ -1,0 +1,50 @@
+## nodes
+NAME                           STATUS   ROLES    AGE   VERSION               TIER     INSTANCE-TYPE
+ip-10-20-10-194.ec2.internal   Ready    <none>   47m   v1.35.9-eks-39aca56   edge     t3.small
+ip-10-20-10-29.ec2.internal    Ready    <none>   47m   v1.35.9-eks-39aca56   edge     t3.small
+ip-10-20-20-212.ec2.internal   Ready    <none>   47m   v1.35.9-eks-39aca56   egress   t3.small
+
+## hpa
+NAME           REFERENCE                 TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
+event          Deployment/event          cpu: 5%/60%   2         8         2          5m57s
+registration   Deployment/registration   cpu: 9%/60%   2         8         2          5m57s
+web            Deployment/web            cpu: 2%/60%   1         4         1          5m57s
+
+## deployments
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+auth           2/2     2            2           5m58s
+event          2/2     2            2           5m58s
+mail-worker    1/1     1            1           5m58s
+payment        1/1     1            1           5m58s
+registration   2/2     2            2           5m58s
+web            1/1     1            1           5m58s
+
+## pods
+NAMESPACE       NAME                                        READY   STATUS    RESTARTS   AGE     IP             NODE                           NOMINATED NODE   READINESS GATES
+eventide        registration-689d567d54-qcssl               1/1     Running   0          5m59s   10.20.10.127   ip-10-20-10-194.ec2.internal   <none>           <none>
+eventide        event-57d8c57d6-l27xd                       1/1     Running   0          6m      10.20.10.207   ip-10-20-10-194.ec2.internal   <none>           <none>
+kube-system     kube-proxy-8sxb9                            1/1     Running   0          47m     10.20.10.194   ip-10-20-10-194.ec2.internal   <none>           <none>
+kube-system     aws-node-llfsw                              2/2     Running   0          47m     10.20.10.194   ip-10-20-10-194.ec2.internal   <none>           <none>
+eventide        web-549848db65-8jvc6                        1/1     Running   0          6m      10.20.10.236   ip-10-20-10-194.ec2.internal   <none>           <none>
+ingress-nginx   ingress-nginx-controller-7bcf6b54b4-68tvt   1/1     Running   0          30m     10.20.10.134   ip-10-20-10-194.ec2.internal   <none>           <none>
+kube-system     coredns-5fc4f786d9-sl4hn                    1/1     Running   0          46m     10.20.10.196   ip-10-20-10-194.ec2.internal   <none>           <none>
+kube-system     metrics-server-6877f5fd9-8hf7p              1/1     Running   0          30m     10.20.10.89    ip-10-20-10-29.ec2.internal    <none>           <none>
+eventide        event-57d8c57d6-jqcrl                       1/1     Running   0          5m59s   10.20.10.145   ip-10-20-10-29.ec2.internal    <none>           <none>
+kube-system     kube-proxy-ckwpl                            1/1     Running   0          47m     10.20.10.29    ip-10-20-10-29.ec2.internal    <none>           <none>
+eventide        registration-689d567d54-s9rb2               1/1     Running   0          5m59s   10.20.10.36    ip-10-20-10-29.ec2.internal    <none>           <none>
+ingress-nginx   ingress-nginx-controller-7bcf6b54b4-4s242   1/1     Running   0          30m     10.20.10.218   ip-10-20-10-29.ec2.internal    <none>           <none>
+kube-system     aws-node-8mtsb                              2/2     Running   0          47m     10.20.10.29    ip-10-20-10-29.ec2.internal    <none>           <none>
+eventide        payment-6bc5459675-dtlr8                    1/1     Running   0          5m59s   10.20.20.202   ip-10-20-20-212.ec2.internal   <none>           <none>
+kube-system     cluster-autoscaler-6d5999945b-h4nk7         1/1     Running   0          6m22s   10.20.20.226   ip-10-20-20-212.ec2.internal   <none>           <none>
+kube-system     coredns-5fc4f786d9-nd66w                    1/1     Running   0          46m     10.20.20.192   ip-10-20-20-212.ec2.internal   <none>           <none>
+kube-system     aws-node-grd4k                              2/2     Running   0          47m     10.20.20.212   ip-10-20-20-212.ec2.internal   <none>           <none>
+eventide        auth-69ccb9d965-cztdw                       1/1     Running   0          6m      10.20.20.160   ip-10-20-20-212.ec2.internal   <none>           <none>
+eventide        mail-worker-6c675c9dbd-r8p5j                1/1     Running   0          5m59s   10.20.20.82    ip-10-20-20-212.ec2.internal   <none>           <none>
+kube-system     kube-proxy-n8fjs                            1/1     Running   0          47m     10.20.20.212   ip-10-20-20-212.ec2.internal   <none>           <none>
+eventide        auth-69ccb9d965-k9smz                       1/1     Running   0          5m59s   10.20.20.49    ip-10-20-20-212.ec2.internal   <none>           <none>
+
+## top nodes
+NAME                           CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+ip-10-20-10-194.ec2.internal   81m          4%       755Mi           52%         
+ip-10-20-10-29.ec2.internal    50m          2%       709Mi           49%         
+ip-10-20-20-212.ec2.internal   61m          3%       782Mi           54%         

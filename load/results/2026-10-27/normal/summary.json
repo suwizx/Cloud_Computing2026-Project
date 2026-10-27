@@ -1,0 +1,426 @@
+{
+    "metrics": {
+        "http_req_failed{endpoint:web}": {
+            "passes": 2,
+            "fails": 3849,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0.0005193456245131135
+        },
+        "http_req_duration{endpoint:og_event}": {
+            "max": 21341.293,
+            "avg": 1688.5406331811284,
+            "min": 778.142,
+            "med": 1432.92,
+            "p(90)": 2399.185,
+            "p(95)": 2801.6509999999994,
+            "p(99)": 6553.835679999989,
+            "thresholds": {
+                "p(95)<1000": true
+            }
+        },
+        "http_req_duration{endpoint:health}": {
+            "min": 244.109,
+            "med": 275.926,
+            "p(90)": 368.641,
+            "p(95)": 470.52339999999975,
+            "p(99)": 2392.3145599999993,
+            "max": 27118.32,
+            "avg": 387.44093011305245,
+            "thresholds": {
+                "p(95)<1000": false
+            }
+        },
+        "dropped_iterations": {
+            "count": 251,
+            "rate": 0.27833041519971846
+        },
+        "http_req_failed{endpoint:og_event}": {
+            "passes": 0,
+            "fails": 657,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "status_by_code": {
+            "count": 32148,
+            "rate": 35.64847086789063
+        },
+        "status_by_code{code:404}": {
+            "count": 0,
+            "rate": 0,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "http_req_duration": {
+            "avg": 391.84802009330883,
+            "min": 0,
+            "med": 283.999,
+            "p(90)": 382.3218000000001,
+            "p(95)": 757.4713499999962,
+            "p(99)": 2520.01183,
+            "max": 27118.32,
+            "thresholds": {
+                "p(95)<1000": false
+            }
+        },
+        "status_by_code{code:503}": {
+            "count": 0,
+            "rate": 0,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "http_reqs": {
+            "count": 32150,
+            "rate": 35.6506886401233
+        },
+        "http_req_duration{endpoint:event_detail}": {
+            "p(99)": 2218.1763999999994,
+            "max": 16793.892,
+            "avg": 355.5717752172281,
+            "min": 0,
+            "med": 276.8,
+            "p(90)": 359.198,
+            "p(95)": 410.824,
+            "thresholds": {
+                "p(95)<1000": false
+            }
+        },
+        "status_by_code{code:429}": {
+            "count": 0,
+            "rate": 0,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "http_req_failed{endpoint:health}": {
+            "fails": 973,
+            "passes": 0,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "http_req_sending": {
+            "p(95)": 0.369,
+            "p(99)": 0.5640399999999989,
+            "max": 9.477,
+            "avg": 0.23641832037325058,
+            "min": 0,
+            "med": 0.226,
+            "p(90)": 0.342
+        },
+        "http_req_duration{endpoint:categories}": {
+            "p(95)": 419.3189999999996,
+            "p(99)": 2184.10488,
+            "max": 8473.884,
+            "avg": 348.32148254217435,
+            "min": 0,
+            "med": 280.317,
+            "p(90)": 360.8312,
+            "thresholds": {
+                "p(95)<1000": false
+            }
+        },
+        "http_req_duration{endpoint:my_tickets}": {
+            "avg": 356.4630301817066,
+            "min": 0,
+            "med": 284.907,
+            "p(90)": 364.1444,
+            "p(95)": 403.2964999999999,
+            "p(99)": 2320.5741399999984,
+            "max": 19483.143,
+            "thresholds": {
+                "p(95)<1000": false
+            }
+        },
+        "status_by_code{code:500}": {
+            "count": 0,
+            "rate": 0,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "http_req_duration{expected_response:true}": {
+            "p(95)": 758.8214999999996,
+            "p(99)": 2520.2270999999996,
+            "max": 27118.32,
+            "avg": 392.07973128753787,
+            "min": 244.109,
+            "med": 284.016,
+            "p(90)": 382.439
+        },
+        "http_req_connecting": {
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 0,
+            "max": 5234.862,
+            "avg": 24.119816391912913,
+            "min": 0,
+            "med": 0
+        },
+        "http_req_duration{endpoint:events_list}": {
+            "p(95)": 432.96899999999977,
+            "p(99)": 2246.039399999999,
+            "max": 12384.499,
+            "avg": 355.6704464219505,
+            "min": 0,
+            "med": 284.541,
+            "p(90)": 368.482,
+            "thresholds": {
+                "p(95)<1000": false
+            }
+        },
+        "status_by_code{code:502}": {
+            "count": 0,
+            "rate": 0,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "http_req_tls_handshaking": {
+            "p(95)": 0,
+            "p(99)": 0,
+            "max": 22612.279,
+            "avg": 60.764988678071525,
+            "min": 0,
+            "med": 0,
+            "p(90)": 0
+        },
+        "vus": {
+            "value": 0,
+            "min": 0,
+            "max": 296
+        },
+        "status_by_code{code:401}": {
+            "count": 0,
+            "rate": 0,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "http_req_failed{endpoint:event_detail}": {
+            "passes": 5,
+            "fails": 7936,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0.000629643621710112
+        },
+        "http_req_failed{endpoint:events_list}": {
+            "passes": 4,
+            "fails": 8087,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0.0004943764676801385
+        },
+        "http_req_duration{endpoint:web}": {
+            "p(95)": 616.477,
+            "p(99)": 2561.5594999999953,
+            "max": 20495.698,
+            "avg": 401.61747390288104,
+            "min": 0,
+            "med": 282.157,
+            "p(90)": 507.754,
+            "thresholds": {
+                "p(95)<1000": false
+            }
+        },
+        "status_by_code{code:200}": {
+            "count": 32129,
+            "rate": 35.62740203168029,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "status_by_code{code:504}": {
+            "count": 0,
+            "rate": 0,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "http_req_blocked": {
+            "p(99)": 0.017,
+            "max": 26289.095,
+            "avg": 82.54551409027906,
+            "min": 0,
+            "med": 0.001,
+            "p(90)": 0.002,
+            "p(95)": 0.002
+        },
+        "data_received": {
+            "count": 94084030,
+            "rate": 104328.47463570823
+        },
+        "iterations": {
+            "count": 32148,
+            "rate": 35.64847086789063
+        },
+        "http_req_failed": {
+            "passes": 19,
+            "fails": 32131,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0.0005909797822706065
+        },
+        "status_by_code{code:403}": {
+            "count": 0,
+            "rate": 0,
+            "thresholds": {
+                "count>=0": false
+            }
+        },
+        "http_req_failed{endpoint:my_tickets}": {
+            "passes": 1,
+            "fails": 3246,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0.0003079765937788728
+        },
+        "http_req_failed{endpoint:availability}": {
+            "passes": 6,
+            "fails": 4833,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0.0012399256044637321
+        },
+        "http_req_duration{endpoint:availability}": {
+            "p(99)": 2315.8979799999997,
+            "max": 21106.988,
+            "avg": 375.5655277949993,
+            "min": 0,
+            "med": 290.084,
+            "p(90)": 375.6326,
+            "p(95)": 452.01719999999966,
+            "thresholds": {
+                "p(95)<1000": false
+            }
+        },
+        "iteration_duration": {
+            "p(90)": 386.67108750000006,
+            "p(95)": 926.0490646,
+            "p(99)": 4303.210813269988,
+            "max": 35773.9855,
+            "avg": 479.5984737372799,
+            "min": 244.405541,
+            "med": 284.6023955
+        },
+        "vus_max": {
+            "value": 301,
+            "min": 50,
+            "max": 301
+        },
+        "http_req_receiving": {
+            "med": 0.0785,
+            "p(90)": 0.245,
+            "p(95)": 1.0925499999999986,
+            "p(99)": 821.2112199999998,
+            "max": 7190.566,
+            "avg": 20.387425785380955,
+            "min": 0
+        },
+        "http_req_failed{endpoint:categories}": {
+            "passes": 1,
+            "fails": 2548,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0.00039231071008238524
+        },
+        "http_req_waiting": {
+            "avg": 371.22417598755686,
+            "min": 0,
+            "med": 283.384,
+            "p(90)": 376.9212,
+            "p(95)": 574.0602999999992,
+            "p(99)": 2283.457559999997,
+            "max": 27117.97
+        },
+        "data_sent": {
+            "count": 2403194,
+            "rate": 2664.8684614560643
+        },
+        "checks": {
+            "passes": 58796,
+            "fails": 19,
+            "value": 0.9996769531582079
+        }
+    },
+    "setup_data": {
+        "cookie": "__Secure-better-auth.session_token=U0iWhocEWLeCuDPMZoe9iqR1eUskqQOV.JtUArRAZK6oDluXJ1yt793kh%2By424DkxJmrttiEpHpo%3D",
+        "events": [
+            {
+                "slug": "startup-pitch-night-5",
+                "id": "473073ee-2394-40c4-a0c6-9c42b4df8c84"
+            },
+            {
+                "id": "3a77a17d-2231-41bf-a604-e296060df444",
+                "slug": "bangkok-jazz-night"
+            },
+            {
+                "id": "9122eaad-cdf3-4dcc-ad4b-d64ebe87b617",
+                "slug": "street-photography-workshop"
+            },
+            {
+                "id": "2b8b1244-d1ed-42a9-9663-ba1d86f67686",
+                "slug": "chiang-mai-street-food-festival"
+            },
+            {
+                "id": "d03a90c1-99e9-4c9d-a536-a19a5edc0ad0",
+                "slug": "bangkok-community-run-10k"
+            }
+        ]
+    },
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {
+                "status 200": {
+                    "name": "status 200",
+                    "path": "::status 200",
+                    "id": "fad9fa412b86fcb03bee97c80dcd61f1",
+                    "passes": 32129,
+                    "fails": 19
+                },
+                "body has id": {
+                    "id": "48fc3b0e64e5a7f6be882dc6c2531bdd",
+                    "passes": 7941,
+                    "fails": 0,
+                    "name": "body has id",
+                    "path": "::body has id"
+                },
+                "body has items": {
+                    "name": "body has items",
+                    "path": "::body has items",
+                    "id": "0550261b87050721dd84303bb892e48d",
+                    "passes": 8091,
+                    "fails": 0
+                },
+                "body has tickets": {
+                    "path": "::body has tickets",
+                    "id": "5937a693c4ad51642337444fea8de2bc",
+                    "passes": 3247,
+                    "fails": 0,
+                    "name": "body has tickets"
+                },
+                "body is an array": {
+                    "path": "::body is an array",
+                    "id": "ddf10cc2833800309389bad13078ce16",
+                    "passes": 7388,
+                    "fails": 0,
+                    "name": "body is an array"
+                }
+            }
+    }
+}
